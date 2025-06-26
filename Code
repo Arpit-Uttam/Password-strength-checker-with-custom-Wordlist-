@@ -1,3 +1,4 @@
+
 import tkinter as tk
 from tkinter import messagebox, filedialog
 from zxcvbn import zxcvbn
@@ -44,3 +45,117 @@ Suggestions:
     result_box.delete("1.0", tk.END)
     result_box.insert(tk.END, result_text.strip())
     result_box.config(state='disabled')
+
+# ---------- Wordlist Generator ----------
+def generate_wordlist():
+    inputs = wordlist_entry.get("1.0", tk.END).strip().split()
+    if not inputs:
+        messagebox.showwarning("Warning", "Please enter at least one word.")
+        return
+
+    min_len, max_len = 6, 12
+    mutations = set()
+
+    for word in inputs:
+        base = word.lower()
+        variations = [
+            base,
+            base.capitalize(),
+            base[::-1],
+            base + "123",
+            base + "@2025",
+            base + "!",
+            "!" + base,
+            base.upper(),
+            base + base,
+        ]
+        mutations.update(variations)
+
+    for combo in itertools.permutations(inputs, 2):
+        combined = ''.join(combo)
+        if min_len <= len(combined) <= max_len:
+            mutations.add(combined)
+            mutations.add(combined + "123")
+            mutations.add(combined + "@")
+
+    final_list = [word for word in mutations if min_len <= len(word) <= max_len]
+
+    filepath = filedialog.asksaveasfilename(
+        defaultextension=".txt",
+        filetypes=[("Text files", "*.txt")],
+        title="Save Wordlist As"
+    )
+
+    if filepath:
+        with open(filepath, 'w') as f:
+            for word in final_list:
+                f.write(f"{word}\n")
+        messagebox.showinfo("Success", f"Wordlist saved: {filepath}\nTotal: {len(final_list)} words.")
+
+# ---------- UI Setup ----------
+app = tk.Tk()
+app.title("🔐 Password Analyzer & Wordlist Generator")
+app.geometry("600x600")
+app.config(bg="#111")
+
+label_style = {"bg": "#111", "fg": "#0f0", "font": ("Courier", 12)}
+entry_style = {"bg": "#222", "fg": "#fff", "insertbackground": "#0f0", "font": ("Courier", 12)}
+
+# Password input
+tk.Label(app, text="🔍 Enter Password:", **label_style).pack(pady=5)
+password_entry = tk.Entry(app, width=40, **entry_style)
+password_entry.pack(pady=5)
+tk.Button(app, text="Analyze Password", command=analyze_password, bg="#0f0", fg="#000").pack(pady=5)
+
+# Result box
+result_box = tk.Text(app, height=10, width=70, state='disabled', bg="#000", fg="#0f0", font=("Courier", 10))
+result_box.pack(pady=10)
+
+# Wordlist input
+tk.Label(app, text="🛠 Enter Words (Name, DOB, etc.)", **label_style).pack(pady=5)
+wordlist_entry = tk.Text(app, height=5, width=60, **entry_style)
+wordlist_entry.pack(pady=5)
+tk.Button(app, text="Generate Wordlist", command=generate_wordlist, bg="#0f0", fg="#000").pack(pady=10)
+
+# Footer
+tk.Label(app, text="CyberSec Tool 🔐 by Arpit", fg="#555", bg="#111", font=("Courier", 9)).pack(side="bottom", pady=5)
+
+app.mainloop()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
