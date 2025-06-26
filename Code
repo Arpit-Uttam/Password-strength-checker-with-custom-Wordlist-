@@ -12,3 +12,35 @@ def load_breach_passwords(filepath='common_passwords.txt'):
         return set(line.strip() for line in f if line.strip())
 
 breach_passwords = load_breach_passwords()
+
+# ---------- Password Analysis ----------
+def analyze_password():
+    password = password_entry.get()
+    if not password:
+        messagebox.showwarning("Warning", "Please enter a password.")
+        return
+
+    result = zxcvbn(password)
+    score = result['score']
+    guesses = result['guesses']
+    crack_time = result['crack_times_display']['online_no_throttling_10_per_second']
+    warning = result['feedback']['warning']
+    suggestions = "\n".join(result['feedback']['suggestions'])
+
+    is_breached = password.lower() in breach_passwords
+    breach_warning = "⚠️ This password is found in breach lists!" if is_breached else "✅ Not found in common breaches."
+
+    result_text = f"""
+Password: {password}
+Score: {score}/4
+Guesses: {guesses}
+Crack Time (Online): {crack_time}
+Breach Check: {breach_warning}
+Warning: {warning if warning else 'None'}
+Suggestions:
+{suggestions if suggestions else 'None'}
+"""
+    result_box.config(state='normal')
+    result_box.delete("1.0", tk.END)
+    result_box.insert(tk.END, result_text.strip())
+    result_box.config(state='disabled')
